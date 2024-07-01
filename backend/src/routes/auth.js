@@ -1,11 +1,11 @@
-const express = require("express");
-const db = require("../db/database");
-const router = express.Router();
-const { check, validationResult } = require('express-validator');
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const verifyToken = require('../middleware/auth');
+import express from "express";
+import {query} from "../db/database.js";
+import { check, validationResult } from 'express-validator';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import verifyToken from '../middleware/auth.js';
 
+const router = express.Router();
 router.post("/login",[
     check("email", "Email is required").isEmail(),
     check("password", "Password with 6 or more characters required").isLength({min: 6})],
@@ -18,7 +18,7 @@ router.post("/login",[
         const {email, password} = req.body;
 
         try {
-            const userResult = await db.query("SELECT * FROM users WHERE email = $1",[email]);
+            const userResult = await query("SELECT * FROM users WHERE email = $1",[email]);
 
             if(userResult.rows.length==0){
                 return res.status(400).json({status: "Invalid credentials"});
@@ -62,4 +62,5 @@ router.post("/logout", (req,res) => {
     res.send();
 });
 
-module.exports = router;
+export default router;
+//module.exports = router;
