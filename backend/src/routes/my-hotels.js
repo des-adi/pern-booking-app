@@ -64,5 +64,13 @@ router.post("/", verifyToken, [
     }
 });
 
+router.get("/", verifyToken, async(req,res) => {
+    try {
+        const hotels = await query("SELECT * FROM hotels WHERE userId = $1",[req.userId]);
+        res.json(hotels);
+    } catch (err) {
+        res.status(500).send({message: "Error fetching hotels"});
+    }
+});
+
 export default router;
-//module.exports = router;
