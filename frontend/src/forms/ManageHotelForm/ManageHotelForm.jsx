@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import DetailsSection from './DetailsSection';
 import TypesSection from './TypesSection';
@@ -6,24 +6,44 @@ import FacilitiesSection from './FacilitiesSection';
 import GuestsSection from './GuestsSection';
 import ImagesSection from './ImagesSection';
 
-const ManageHotelForm = ({onSave, isLoading}) => {
+const ManageHotelForm = ({onSave, isLoading, hotel}) => {
     const formMethods = useForm();
-    const {handleSubmit} = formMethods;
+    const {handleSubmit, reset} = formMethods;
+    useEffect(() => {
+      if (hotel && hotel.length > 0) {
+          reset(hotel[0]);
+      } else {
+          reset(); // Reset to default if hotel is undefined or empty
+      }
+  }, [hotel, reset]);
+
     const onSubmit = handleSubmit((formDataJson) => {
         //create new formData and call our API
         const formData = new FormData();
+        
+       if(hotel){
+        formData.append("id", hotel[0].id);
+       }
         formData.append("name", formDataJson.name);
         formData.append("city", formDataJson.city);
         formData.append("country", formDataJson.country);
         formData.append("description", formDataJson.description);
         formData.append("type", formDataJson.type);
-        formData.append("pricePerNight", formDataJson.pricePerNight.toString());
-        formData.append("starRating", formDataJson.starRating.toString());    
-        formData.append("adultCount", formDataJson.adultCount.toString());  
-        formData.append("childCount", formDataJson.childCount.toString());
+        formData.append("pricepernight", formDataJson.pricepernight.toString());
+        formData.append("starrating", formDataJson.starrating.toString());    
+        formData.append("adultcount", formDataJson.adultcount.toString());  
+        formData.append("childcount", formDataJson.childcount.toString());
         formDataJson.facilities.forEach((facility, index) => {
             formData.append(`facilities[${index}]`, facility);
         });
+
+        //[im1.png, im2.png, im3.png]
+        //imageurls = [im1.png]
+        if(formDataJson.imageurls){
+          formDataJson.imageurls.forEach((url, index) => {
+            formData.append(`imageurls[${index}]`, url);
+          });
+        };
         Array.from(formDataJson.imageFiles).forEach((imageFile) => {
             formData.append(`imageFiles`, imageFile);
         });

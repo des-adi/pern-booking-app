@@ -80,3 +80,29 @@ export const fetchMyHotels = async () => {
     }
     return response.json();
 };
+
+export const fetchMyHotelById = async (hotelId) => {
+    const response = await fetch(`${API_BASE_URL}/api/my-hotels/${hotelId}`, {
+        credentials: "include",
+    });
+
+    if(!response.ok){
+        throw new Error("Error fetching hotel");
+    }
+
+    return response.json();
+};
+
+export const updateMyHotelById = async (hotelFormData) => {
+    const response = await fetch(`${API_BASE_URL}/api/my-hotels/${hotelFormData.get("id")}`, {
+        method: "PUT",
+        body: hotelFormData,
+        credentials: "include",
+    });
+
+    if(!response.ok){
+        throw new Error("Failed to update hotel");
+    }
+
+    return response.json();
+};

@@ -30,18 +30,18 @@ const DetailsSection = () => {
         </label>
         <label className="text-gray-700 text-sm font-bold max-w-[50%]">
             Price per night
-            <input type="number" min={1} className="border rounded w-full py-1 px-2 font-normal " {...register("pricePerNight",{required: "This field is required"})} />
-            {errors.pricePerNight && (<span className='text-red-500'>{errors.pricePerNight.message}</span>)}
+            <input type="number" min={1} className="border rounded w-full py-1 px-2 font-normal " {...register("pricepernight",{required: "This field is required"})} />
+            {errors.pricepernight && (<span className='text-red-500'>{errors.pricepernight.message}</span>)}
         </label>
         <label className="text-gray-700 text-sm font-bold max-w-[50%]">
             Star Rating
-            <select className='border rounded w-full p-2 text-gray-700 font-normal' {...register("starRating",{required: "This field is required"})}>
+            <select className='border rounded w-full p-2 text-gray-700 font-normal' {...register("starrating",{required: "This field is required"})}>
                 <option value="" className="text-sm font-bold">Select as Rating</option>
                 {[1,2,3,4,5].map((number) => {
                     return <option value={number}>{number}</option>;
                 })}
             </select>
-            {errors.starRating && (<span className='text-red-500'>{errors.starRating.message}</span>)}
+            {errors.starrating && (<span className='text-red-500'>{errors.starrating.message}</span>)}
         </label>
     </div>
   );
