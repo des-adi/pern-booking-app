@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 import userRoutes from './routes/users.js';
 import authRoutes from './routes/auth.js';
 import myHotelRoutes from './routes/my-hotels.js';
+import hotelRoutes from './routes/hotels.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +26,7 @@ app.use(express.static(path.join(__dirname, "../../frontend/dist")));
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/my-hotels", myHotelRoutes);
+app.use("/api/hotels", hotelRoutes);
 
 app.get("*", (req,res) => {
     res.sendFile(path.join(__dirname,"../../frontend/dist/index.html"));
