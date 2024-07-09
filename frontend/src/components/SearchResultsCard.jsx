@@ -39,7 +39,7 @@ const SearchResultsCard = ({ hotel }) => {
           </div>
           <div className='flex flex-col items-end gap-1'>
             <span className='font-bold'>Rs. {hotel.pricepernight} per night</span>
-            <Link to={`/detail/${hotel.id}`} className='bg-blue-600 text-white h-full p-2 font-bold text-xl max-w-fit'>View More</Link>
+            <Link to={`/detail/${hotel.id.toString()}`} className='bg-blue-600 text-white h-full p-2 font-bold text-xl max-w-fit'>View More</Link>
           </div>
         </div>
       </div>

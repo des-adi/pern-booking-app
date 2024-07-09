@@ -1,6 +1,6 @@
 import express from 'express';
 import { query } from "../db/database.js";
-
+import {param, validationResult} from 'express-validator';
 const router = express.Router();
 
 router.get('/search', async (req, res) => {
@@ -56,8 +56,28 @@ router.get('/search', async (req, res) => {
       res.status(500).json({ message: 'Something went wrong' });
     }
   });
+
+router.get("/:id", [
+    param("id").notEmpty().isInt().withMessage("Hotel Id is required"),
+  ], async (req,res) => {
   
-  const constructSearchQuery = (queryParams) => {
+    const errors = validationResult(req);
+    if(!errors.isEmpty()){
+      return res.status(400).json({errors: errors.array()});
+    }
+  
+    const id = parseInt(req.params.id);
+    try {
+      const hotel = await query("SELECT * FROM hotels WHERE id = $1", [id]);
+      res.json(hotel.rows[0]);
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({message: "Error fetching hotels"});
+    }
+  });
+  
+  
+const constructSearchQuery = (queryParams) => {
     let queryParts = [];
   
     if (queryParams.destination) {
@@ -106,6 +126,8 @@ router.get('/search', async (req, res) => {
   
     return queryParts.length ? queryParts.join(' AND ') : 'TRUE';
   };
+
+
 export default router;
 
 

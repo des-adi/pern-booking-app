@@ -82,6 +82,7 @@ export const fetchMyHotels = async () => {
 };
 
 export const fetchMyHotelById = async (hotelId) => {
+    console.log(hotelId);
     const response = await fetch(`${API_BASE_URL}/api/my-hotels/${hotelId}`, {
         credentials: "include",
     });
@@ -129,4 +130,15 @@ export const searchHotels = async (searchParams) => {
     }
 
     return response.json();
+};
+
+export const fetchHotelById = async (hotelId) => {
+    console.log(hotelId);
+    const response = await fetch(`${API_BASE_URL}/api/hotels/${hotelId}`);
+    if(!response.ok){
+        throw new Error("Error fetching hotel");
+    }
+
+    return response.json();
+
 };
