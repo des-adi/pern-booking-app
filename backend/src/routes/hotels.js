@@ -1,6 +1,11 @@
 import express from 'express';
 import { query } from "../db/database.js";
 import {param, validationResult} from 'express-validator';
+import Stripe from 'stripe';
+import verifyToken from '../middleware/auth.js';
+
+const stripe = new Stripe(process.env.STRIPE_API_KEY);
+
 const router = express.Router();
 
 router.get('/search', async (req, res) => {
@@ -68,15 +73,106 @@ router.get("/:id", [
   
     const id = parseInt(req.params.id);
     try {
-      const hotel = await query("SELECT * FROM hotels WHERE id = $1", [id]);
-      res.json(hotel.rows[0]);
+      const hotelData = await query("SELECT * FROM hotels WHERE id = $1", [id]);
+      const hotel = hotelData.rows[0];
+      res.json(hotel);
     } catch (err) {
       console.log(err);
       res.status(500).json({message: "Error fetching hotels"});
     }
   });
   
-  
+router.post("/:hotelId/bookings/payment-intent", verifyToken, async (req,res) => {
+  //totalcost, hotelId, userId
+
+  const {numberOfNights} = req.body;
+  const hotelId = req.params.hotelId;
+
+  const hotelData = await query("SELECT * FROM hotels WHERE id = $1",[hotelId]);
+
+  const hotel = hotelData.rows[0];
+
+  if(!hotel){
+    res.status(400).json({message: "Hotel not found"});
+  }
+
+  const totalcost = hotel.pricepernight * numberOfNights;
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: totalcost * 100,
+    currency: "aud",
+    metadata: {
+      hotelId,
+      userId: req.userId,
+    },
+  });
+
+  if(!paymentIntent.client_secret){
+    return res.status(500).json({message: "Error creating payment intent"});
+  }
+
+  const response = {
+    paymentIntentId: paymentIntent.id,
+    clientSecret: paymentIntent.client_secret.toString(),
+    totalcost,
+  };
+
+  res.send(response);
+});
+
+router.post("/:hotelId/bookings", verifyToken, async (req,res) => {
+  try {
+    const {paymentIntentId, ...bookingData} = req.body;
+    const hotelId = req.params.hotelId;
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    console.log(paymentIntent.metadata);
+    if(!paymentIntent){
+      res.status(400).json({message: "Payment intent not found"});
+    }
+
+    if(paymentIntent.metadata.hotelId !== hotelId || paymentIntent.metadata.userId !== req.userId.toString()){
+      res.status(400).json({message: "Payment intent mismatch"});
+    }
+
+    if(paymentIntent.status !== 'succeeded'){
+      return res.status(400).json({message: `Payment intent not succeeded. Status ${paymentIntent.status}`});
+    }
+
+    const newBooking = {
+      firstname: bookingData.firstname,
+      lastname: bookingData.lastname,
+      email: bookingData.email,
+      adultcount: bookingData.adultcount,
+      childcount: bookingData.childcount,
+      checkin: new Date(bookingData.checkin),
+      checkout: new Date(bookingData.checkout),
+      userid: req.userId,
+      totalcost: bookingData.totalcost,
+      hotelid: hotelId,
+    };
+    console.log(newBooking);
+    const hotel = await query(
+      `INSERT INTO bookings (firstname, lastname, email, adultcount, childcount, checkin, checkout, userid, totalcost, hotelid)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [
+        newBooking.firstname,
+        newBooking.lastname,
+        newBooking.email,
+        newBooking.adultcount,
+        newBooking.childcount,
+        newBooking.checkin,
+        newBooking.checkout,
+        newBooking.userid,
+        newBooking.totalcost,
+        newBooking.hotelid
+      ]
+    );
+    res.status(200).send(hotel.rows[0]);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({message: "Something went wrong"});
+  }
+});
 const constructSearchQuery = (queryParams) => {
     let queryParts = [];
   
@@ -126,7 +222,6 @@ const constructSearchQuery = (queryParams) => {
   
     return queryParts.length ? queryParts.join(' AND ') : 'TRUE';
   };
-
 
 export default router;
 

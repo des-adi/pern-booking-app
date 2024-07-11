@@ -35,7 +35,7 @@ const GuestInfoForm = ({hotelId, pricepernight}) => {
   };
 
   const onSubmit = (data) => {
-    search.saveSearchValues('', checkIn, checkOut, adultcount, childcount);
+    search.saveSearchValues('', data.checkIn, data.checkOut, data.adultcount, data.childcount);
     navigate(`/hotel/${hotelId}/booking`);
   };
     return (
